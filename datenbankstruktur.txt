@@ -1,0 +1,65 @@
+baustelle
+
+baustellen
+Spalte	Typ	Null	Standard	Verweise	Kommentare	Medientyp
+id (Primärschlüssel)	int(11)	Nein
+name	varchar(64)	Nein
+start	date	Nein
+ende	date	Nein
+status	varchar(16)	Nein
+Beschreibung	varchar(80)	Ja	NULL
+Indizes
+
+Schlüsselname	Typ	Unique	Gepackt	Spalte	Kardinalität	Kollation	Null	Kommentar
+PRIMARY	BTREE	Ja	Nein	id	6	A	Nein
+dokumente_baustelle
+Spalte	Typ	Null	Standard	Verweise	Kommentare	Medientyp
+Dokument_Name	varchar(80)	Nein
+Dokument_Beschreibung	varchar(80)	Nein
+Erstell_Datum	date	Nein
+Kein Index definiert!
+
+fahrzeuge
+Spalte	Typ	Null	Standard	Verweise	Kommentare	Medientyp
+id (Primärschlüssel)	int(11)	Nein
+baujahr	date	Nein
+kaufdatum	date	Nein
+modell_id	int(11)	Nein
+name	varchar(32)	Nein
+Beschreibung	varchar(256)	Nein
+Baujahr_Jahr	char(4)	Ja	NULL
+Indizes
+
+Schlüsselname	Typ	Unique	Gepackt	Spalte	Kardinalität	Kollation	Null	Kommentar
+PRIMARY	BTREE	Ja	Nein	id	3	A	Nein
+fahrzeuge_baustellen
+Spalte	Typ	Null	Standard	Verweise	Kommentare	Medientyp
+baustellen_id	int(11)	Nein
+fahrzeug_id	int(11)	Nein
+start	date	Nein
+ende	date	Nein
+Kein Index definiert!
+
+Fahrzeugmodelle
+Spalte	Typ	Null	Standard	Verweise	Kommentare	Medientyp
+id (Primärschlüssel)	int(11)	Nein
+Fahrzeug_modell	varchar(32)	Nein
+Beschreibung	varchar(1024)	Nein
+typ_id	int(11)	Nein
+Indizes
+
+Schlüsselname	Typ	Unique	Gepackt	Spalte	Kardinalität	Kollation	Null	Kommentar
+PRIMARY	BTREE	Ja	Nein	id	4	A	Nein
+id	BTREE	Ja	Nein	id	4	A	Nein
+Fahrzeug_modell	4	A	Nein
+fahrzeugtypen
+Spalte	Typ	Null	Standard	Verweise	Kommentare	Medientyp
+id (Primärschlüssel)	int(11)	Nein
+Fahrzeug_typ	varchar(16)	Nein
+Indizes
+
+Schlüsselname	Typ	Unique	Gepackt	Spalte	Kardinalität	Kollation	Null	Kommentar
+PRIMARY	BTREE	Ja	Nein	id	4	A	Nein
+id	BTREE	Ja	Nein	id	4	A	Nein
+Fahrzeug_typ	BTREE	Ja	Nein	Fahrzeug_typ	4	A	Nein
+Fahrzeug_typ_2	BTREE	Ja	Nein	Fahrzeug_typ	4	A	Nein
