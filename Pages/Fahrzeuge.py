@@ -1,5 +1,9 @@
 import pandas
 import streamlit as st
+import traceback
+from Dashboard import showSidebar
+
+showSidebar()
 
 db = st.connection('mysql', type='sql')
 
@@ -13,7 +17,18 @@ data = db.query("""
 """, ttl=0)
 a = pandas.DataFrame(data=data)
 a.columns = ["Name", "Modell", "Fahrzeugtyp", "Baujahr", "Kaufdatum"]
-st.dataframe(a, height=400, width=950)
+a.insert(0, "Anzeigen", "")
 
-st.divider()
 
+def create_link(name):
+    return f"http://localhost:8501/Fahrzeug_Anzeigen/?name={name.replace(' ', '%20')}"
+
+
+a["Anzeigen"] = a["Name"].apply(create_link)
+# st.write(str(f"[{name}](http://localhost:8501/edit/?name={name.replace(' ', '%20')})"))
+
+st.dataframe(a, width=1000, height=400,
+             column_config={"Anzeigen": st.column_config.LinkColumn(
+                 display_text='Anzeigen',
+                 width=1,
+             )})

@@ -1,39 +1,70 @@
 from datetime import datetime
 import traceback
-
 import streamlit as st
 from sqlalchemy import text
+from Dashboard import showSidebar
+showSidebar()
+
+def dokumenteHochladen(session, dokumente, fahrzeug_id):
+    try:
+        for doc in dokumente:
+            data = doc.read()
+            session.execute(text("INSERT INTO fahrzeugdokumente(fahrzeug_id, dokument, dateiname) VALUES(:fahrzeug_id, :dokument, :dateiname)"),
+                            {"fahrzeug_id": fahrzeug_id, "dokument": data, "dateiname": str(doc.name)})
+            session.commit()
+    except Exception as e:
+        st.error(e)
+        st.error(traceback.format_exc())
+
 
 db = st.connection('mysql', type='sql')
-typen = db.query("SELECT fahrzeug_typ FROM fahrzeugtypen")
+typen = db.query("SELECT fahrzeug_typ, id FROM fahrzeugtypen")
 modelle = db.query("SELECT fahrzeug_modell, beschreibung, fahrzeugtypen.Fahrzeug_typ FROM fahrzeugmodelle JOIN "
                    "fahrzeugtypen ON fahrzeugmodelle.typ_id = fahrzeugtypen.id", ttl=0)
-
 st.title("Neues Fahrzeug hinzufügen")
-name = st.text_input("Name")
-baujahr = st.number_input("Baujahr", value=2000)
-kaufdatum = st.date_input("Kaufdatum")
+
 col1, col2 = st.columns(2)
 with col1:
-    typ = st.selectbox("Typ", typen)
+    typ = st.selectbox("Typ", typen, index=None)
 with col2:
-    fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + typ + "'"))
-st.caption(str(db.query("SELECT beschreibung FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell)+"'")["beschreibung"][0]))
-beschreibung = st.text_input("Anmerkung:")
-if st.button("Fahrzeug hinzufügen"):
-    if name != "":
-        try:
-            s = db.session
-            a = datetime.strptime(str(baujahr), '%Y')
-            typ_id = db.query("SELECT id FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'", ttl=0)["id"][0]
-            print(typ_id)
-            q = "('" + str(a.strftime('%Y-%m-%d')) + "','" + str(kaufdatum) + "'," + str(typ_id) + ",'" + name + "','" + beschreibung + "')"
-            s.execute(text(
-                f"INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung) VALUES" + q))
-            s.commit()
-            s.close()
-            st.success("Fahrzeug hinzugefügt")
-        except Exception as e:
-            st.error(traceback.format_exc())
+    if typ == None:
+        fahrzeugmodell = st.selectbox("Modell", [])
     else:
-        st.error("Marke darf nicht leer sein!")
+        fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"), index=None)
+try:
+    st.caption(str(db.query("SELECT id, beschreibung FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell)+"'")["beschreibung"][0]))
+except:
+    pass
+with st.form("Fahrzeug hinzufügen", clear_on_submit=True):
+    name = st.text_input("Name")
+    baujahr = st.number_input("Baujahr", value=2000)
+    kaufdatum = st.date_input("Kaufdatum")
+    beschreibung = st.text_input("Anmerkung:")
+    dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True)
+    if st.form_submit_button("Fahrzeug hinzufügen"):
+        if name != "" and len(str(baujahr)) == 4 and typ != None and fahrzeugmodell != None:
+            try:
+                s = db.session
+                a = datetime.strptime(str(baujahr), '%Y')
+                typ_id = db.query("SELECT id FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'", ttl=0)["id"][0]
+                q = "('" + str(a.strftime('%Y-%m-%d')) + "','" + str(kaufdatum) + "'," + str(typ_id) + ",'" + name + "','" + beschreibung + "')"
+                s.execute(text(
+                    "INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung) VALUES" + q))
+                s.commit()
+                anzahl = dokumente.__len__()
+                if anzahl > 0:
+                    Text = "Dokumente werden hochgeladen"
+                    if anzahl == 1:
+                        Text = "Dokument wird hochgeladen"
+                    fahrzeug_id = db.query("SELECT id FROM fahrzeuge WHERE name = '" + name + "'", ttl=0)["id"][0]
+                    with st.spinner(Text):
+                        dokumenteHochladen(s, dokumente, fahrzeug_id)
+                s.commit()
+                s.close()
+                st.success("Fahrzeug hinzugefügt")
+            except Exception as e:
+                st.error(e)
+                st.error(traceback.format_exc())
+        else:
+            db.session.rollback()
+            st.error("Fehlerhafte eingabe!")

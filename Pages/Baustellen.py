@@ -1,8 +1,9 @@
 import time
-
+import st_pages as stp
 import pandas
 import streamlit as st
-from sqlalchemy import text
+from Dashboard import showSidebar
+showSidebar()
 
 db = st.connection('mysql', type='sql')
 
@@ -37,12 +38,22 @@ def assign_vehicles_to_baustelle(db, baustelle_id, vehicle_ids, von, bis):
 
 
 st.title("Baustellenübersicht")
-# st.write("Dummy-Daten werden angezeigt.")
-# Modify the query to also select the id
 data = db.query("SELECT id, name, start, ende, status, Beschreibung FROM baustellen", ttl=0)
 a = pandas.DataFrame(data=data)
-a.columns = ["ID", "Name", "Start", "Ende", "Status", "Beschreibung"]
-d = st.dataframe(a,
+a.columns = ["ID", "Name", "Start", "Ende", "Status", "Anmerkungen"]
+
+status = st.popover("Status")
+inBearbeitung = status.checkbox("In Bearbeitung", value=True)
+abgeschlossen = status.checkbox("Abgeschlossen", value=True)
+inPlanung = status.checkbox("In Planung", value=True)
+aa = a[0:0]
+if inBearbeitung:
+    aa = pandas.concat([aa,a.query("Status == 'in Bearbeitung'")])
+if abgeschlossen:
+    aa = pandas.concat([aa,a.query("Status == 'abgeschlossen'")])
+if inPlanung:
+    aa = pandas.concat([aa,a.query("Status == 'in Planung'")])
+d = st.dataframe(aa,
                  column_config={
                      "Start": st.column_config.DateColumn(),
                  }, height=400, width=950)
@@ -67,7 +78,6 @@ if selMode == "Bearbeiten":
             selected_vehicles = st.multiselect("Fahrzeuge", vehcls["name"])
             button = st.button("Zuweisen")
             if button:
-                # Get the IDs of the selected vehicles
                 try:
                     selected_vehicle_ids = vehcls[vehcls['name'].isin(selected_vehicles)]['id'].tolist()
                     assign_vehicles_to_baustelle(db, baustellen_id, selected_vehicle_ids, von, bis)
