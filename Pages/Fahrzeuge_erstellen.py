@@ -3,13 +3,16 @@ import traceback
 import streamlit as st
 from sqlalchemy import text
 from Dashboard import showSidebar
+
 showSidebar()
+
 
 def dokumenteHochladen(session, dokumente, fahrzeug_id):
     try:
         for doc in dokumente:
             data = doc.read()
-            session.execute(text("INSERT INTO fahrzeugdokumente(fahrzeug_id, dokument, dateiname) VALUES(:fahrzeug_id, :dokument, :dateiname)"),
+            session.execute(text("INSERT INTO fahrzeugdokumente(fahrzeug_id, dokument, dateiname) VALUES("
+                                 ":fahrzeug_id, :dokument, :dateiname)"),
                             {"fahrzeug_id": fahrzeug_id, "dokument": data, "dateiname": str(doc.name)})
             session.commit()
     except Exception as e:
@@ -27,14 +30,17 @@ col1, col2 = st.columns(2)
 with col1:
     typ = st.selectbox("Typ", typen, index=None)
 with col2:
-    if typ == None:
+    if typ is None:
         fahrzeugmodell = st.selectbox("Modell", [])
     else:
         fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"), index=None)
 try:
-    st.caption(str(db.query("SELECT id, beschreibung FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell)+"'")["beschreibung"][0]))
+    st.caption(str(
+        db.query("SELECT id, beschreibung FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'")[
+            "beschreibung"][0]))
 except:
     pass
+
 with st.form("Fahrzeug hinzufügen", clear_on_submit=True):
     name = st.text_input("Name")
     baujahr = st.number_input("Baujahr", value=2000)
@@ -42,21 +48,24 @@ with st.form("Fahrzeug hinzufügen", clear_on_submit=True):
     beschreibung = st.text_input("Anmerkung:")
     dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True)
     if st.form_submit_button("Fahrzeug hinzufügen"):
-        if name != "" and len(str(baujahr)) == 4 and typ != None and fahrzeugmodell != None:
+        if name != "" and len(str(baujahr)) == 4 and typ is not None and fahrzeugmodell is not None:
             try:
                 s = db.session
                 a = datetime.strptime(str(baujahr), '%Y')
-                typ_id = db.query("SELECT id FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'", ttl=0)["id"][0]
-                q = "('" + str(a.strftime('%Y-%m-%d')) + "','" + str(kaufdatum) + "'," + str(typ_id) + ",'" + name + "','" + beschreibung + "')"
-                s.execute(text(
-                    "INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung) VALUES" + q))
+                typ_id = \
+                db.query("SELECT id FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'", ttl=0)[
+                    "id"][0]
+                query = text("INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung) VALUES ("
+                             ":baujahr, :kaufdatum, :modell_id, :name, :beschreibung)")
+                s.execute(query, {"baujahr": str(a.strftime('%Y-%m-%d')), "kaufdatum": str(kaufdatum),
+                                  "modell_id": typ_id, "name": name, "beschreibung": beschreibung})
                 s.commit()
                 anzahl = dokumente.__len__()
                 if anzahl > 0:
                     Text = "Dokumente werden hochgeladen"
                     if anzahl == 1:
                         Text = "Dokument wird hochgeladen"
-                    fahrzeug_id = db.query("SELECT id FROM fahrzeuge WHERE name = '" + name + "'", ttl=0)["id"][0]
+                    fahrzeug_id = db.query("SELECT MAX(id) AS id FROM fahrzeuge", ttl=0)["id"][0]
                     with st.spinner(Text):
                         dokumenteHochladen(s, dokumente, fahrzeug_id)
                 s.commit()

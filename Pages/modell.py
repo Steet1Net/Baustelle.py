@@ -29,9 +29,11 @@ with st.form("Neues Modell", clear_on_submit=True):
                         name = marke + " " + name
                 s = db.session
                 typ_id = db.query("SELECT id FROM fahrzeugtypen WHERE fahrzeug_typ ='" + str(typ) + "'", ttl=0)["id"][0]
-                q = "(" + str(typ_id) + ",'" + name + "'," + str(gewicht) + ",'" + beschreibung + "'," + str(elektrisch) + ")"
-                s.execute(text(
-                    f"INSERT INTO fahrzeugmodelle(typ_id, fahrzeug_modell, gewicht, beschreibung, elektrisch) VALUES" + q))
+                query = text(
+                    "INSERT INTO fahrzeugmodelle(typ_id, fahrzeug_modell, gewicht, beschreibung, elektrisch) VALUES ("
+                    ":typ_id, :name, :gewicht, :beschreibung, :elektrisch)")
+                s.execute(query, {"typ_id": typ_id, "name": name, "gewicht": gewicht, "beschreibung": beschreibung,
+                                  "elektrisch": elektrisch})
                 s.commit()
                 s.close()
                 st.success("Modell hinzugefügt")
