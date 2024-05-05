@@ -26,54 +26,72 @@ modelle = db.query("SELECT fahrzeug_modell, beschreibung, fahrzeugtypen.Fahrzeug
                    "fahrzeugtypen ON fahrzeugmodelle.typ_id = fahrzeugtypen.id", ttl=0)
 st.title("Neues Fahrzeug hinzufügen")
 
-col1, col2 = st.columns(2)
-with col1:
-    typ = st.selectbox("Typ", typen, index=None)
+col3, col4 = st.columns(2)
+col1, col2 = st.columns([2, 1])
 with col2:
-    if typ is None:
-        fahrzeugmodell = st.selectbox("Modell", [])
-    else:
-        fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"), index=None)
-try:
-    st.caption(str(
-        db.query("SELECT id, beschreibung FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'")[
-            "beschreibung"][0]))
-except:
-    pass
-
-with st.form("Fahrzeug hinzufügen", clear_on_submit=True):
-    name = st.text_input("Name")
-    baujahr = st.number_input("Baujahr", value=2000)
-    kaufdatum = st.date_input("Kaufdatum")
-    beschreibung = st.text_input("Anmerkung:")
-    dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True)
-    if st.form_submit_button("Fahrzeug hinzufügen"):
-        if name != "" and len(str(baujahr)) == 4 and typ is not None and fahrzeugmodell is not None:
-            try:
-                s = db.session
-                a = datetime.strptime(str(baujahr), '%Y')
-                typ_id = \
-                db.query("SELECT id FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'", ttl=0)[
-                    "id"][0]
-                query = text("INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung) VALUES ("
-                             ":baujahr, :kaufdatum, :modell_id, :name, :beschreibung)")
-                s.execute(query, {"baujahr": str(a.strftime('%Y-%m-%d')), "kaufdatum": str(kaufdatum),
-                                  "modell_id": typ_id, "name": name, "beschreibung": beschreibung})
-                s.commit()
-                anzahl = dokumente.__len__()
-                if anzahl > 0:
-                    Text = "Dokumente werden hochgeladen"
-                    if anzahl == 1:
-                        Text = "Dokument wird hochgeladen"
-                    fahrzeug_id = db.query("SELECT MAX(id) AS id FROM fahrzeuge", ttl=0)["id"][0]
-                    with st.spinner(Text):
-                        dokumenteHochladen(s, dokumente, fahrzeug_id)
-                s.commit()
-                s.close()
-                st.success("Fahrzeug hinzugefügt")
-            except Exception as e:
-                st.error(e)
-                st.error(traceback.format_exc())
+    c = st.container(border=True)
+    image = c.file_uploader("Bild Hinzufügen", accept_multiple_files=False, type=["png", "jpg", "jpeg"])
+    if image is not None:
+        c.image(image)
+with col1:
+    with col3:
+        typ = st.selectbox("Typ", typen, index=None)
+    with col4:
+        if typ is None:
+            fahrzeugmodell = st.selectbox("Modell", [])
         else:
-            db.session.rollback()
-            st.error("Fehlerhafte eingabe!")
+            fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"),
+                                          index=None)
+    try:
+        st.caption(str(
+            db.query(
+                "SELECT id, beschreibung FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'")[
+                "beschreibung"][0]))
+    except:
+        pass
+
+    with st.form("Fahrzeug hinzufügen", clear_on_submit=True):
+        name = st.text_input("Name")
+        baujahr = st.number_input("Baujahr", value=2000)
+        kaufdatum = st.date_input("Kaufdatum")
+        beschreibung = st.text_input("Anmerkung:")
+        dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True)
+        if st.form_submit_button("Fahrzeug hinzufügen"):
+            if name != "" and len(str(baujahr)) == 4 and typ is not None and fahrzeugmodell is not None:
+                try:
+                    s = db.session
+                    a = datetime.strptime(str(baujahr), '%Y')
+                    typ_id = \
+                        db.query("SELECT id FROM fahrzeugmodelle WHERE fahrzeug_modell ='" + str(fahrzeugmodell) + "'",
+                                 ttl=0)[
+                            "id"][0]
+                    if image is not None:
+                        query = text("INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung, "
+                                     "bild) VALUES (:baujahr, :kaufdatum, :modell_id, :name, :beschreibung, :bild)")
+                        s.execute(query, {"baujahr": str(a.strftime('%Y-%m-%d')), "kaufdatum": str(kaufdatum),
+                                          "modell_id": typ_id, "name": name, "beschreibung": beschreibung,
+                                          "bild": image.read()})
+                    else:
+                        query = text("INSERT INTO fahrzeuge(baujahr, kaufdatum, modell_id, name, beschreibung) VALUES ("
+                                     ":baujahr, :kaufdatum, :modell_id, :name, :beschreibung)")
+                        s.execute(query, {"baujahr": str(a.strftime('%Y-%m-%d')), "kaufdatum": str(kaufdatum),
+                                          "modell_id": typ_id, "name": name, "beschreibung": beschreibung})
+
+                    s.commit()
+                    anzahl = dokumente.__len__()
+                    if anzahl > 0:
+                        Text = "Dokumente werden hochgeladen"
+                        if anzahl == 1:
+                            Text = "Dokument wird hochgeladen"
+                        fahrzeug_id = db.query("SELECT MAX(id) AS id FROM fahrzeuge", ttl=0)["id"][0]
+                        with st.spinner(Text):
+                            dokumenteHochladen(s, dokumente, fahrzeug_id)
+                    s.commit()
+                    s.close()
+                    st.success("Fahrzeug hinzugefügt")
+                except Exception as e:
+                    st.error(e)
+                    st.error(traceback.format_exc())
+            else:
+                db.session.rollback()
+                st.error("Fehlerhafte eingabe!")
