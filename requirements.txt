@@ -33,11 +33,13 @@ referencing==0.34.0
 requests==2.31.0
 rich==13.7.1
 rpds-py==0.18.0
+setuptools==65.5.1
 six==1.16.0
 smmap==5.0.1
 SQLAlchemy==2.0.29
 st-pages==0.4.5
 streamlit==1.33.0
+streamlit-vis-timeline==0.3.0
 tenacity==8.2.3
 toml==0.10.2
 toolz==0.12.1

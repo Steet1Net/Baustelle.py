@@ -1,6 +1,3 @@
-import numpy as np
-import pandas
-import pandas as pd
 import streamlit as st
 
 
@@ -17,15 +14,25 @@ st.set_page_config(
         page_icon="🚧",
         layout="wide"
     )
+db = st.connection('mysql', type='sql')
+showSidebar()
+
 
 st.title("Baustellen und Fahrzeugverwaltungs Tool")
 
-db = st.connection('mysql', type='sql')
+st.write("Willkommen im Baustellen und Fahrzeugverwaltungs Tool. Hier können Sie Baustellen und Fahrzeuge verwalten.")
+st.divider()
 
 
-showSidebar()
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Baustellen", db.query("SELECT COUNT(id) AS id FROM baustellen")["id"][0], "-3")
+col2.metric("Fahrzeuge", db.query("SELECT COUNT(id) AS id FROM fahrzeuge")["id"][0], "2")
+col3.metric("Fahrzeugmodelle", db.query("SELECT COUNT(id) AS id FROM fahrzeugmodelle")["id"][0], "1")
+col4.metric("Fahrzeugtypen", db.query("SELECT COUNT(id) AS id FROM fahrzeugtypen")["id"][0], "1")
 
-chart_data = pd.DataFrame(np.random.randn(10, 3), columns=["Bagger", "Kräne", "Kipper"])
-
-st.bar_chart(chart_data)
+st.divider()
+c = st.container(border=True)
+with c:
+    st.write("Adminbereich")
+    st.write("[Modell hinzufügen](Modell)")
 

@@ -1,3 +1,5 @@
+import traceback
+
 import streamlit as st
 from sqlalchemy import text
 from Dashboard import showSidebar
@@ -5,6 +7,20 @@ from Dashboard import showSidebar
 db = st.connection('mysql', type='sql')
 
 showSidebar()
+
+
+def dokumenteHochladen(session, dokumente, baustellen_id):
+    try:
+        for doc in dokumente:
+            data = doc.read()
+            session.execute(text("INSERT INTO baustellendokumente(baustellen_id, dokument, dateiname) VALUES("
+                                 ":baustellen_id, :dokument, :dateiname)"),
+                            {"baustellen_id": baustellen_id, "dokument": data, "dateiname": str(doc.name)})
+            session.commit()
+    except Exception as e:
+        st.error(e)
+        st.error(traceback.format_exc())
+
 
 st.title("Neue Baustelle hinzufügen")
 with st.form("Baustelle hinzufügen", clear_on_submit=True):
@@ -28,7 +44,6 @@ with st.form("Baustelle hinzufügen", clear_on_submit=True):
         with col5:
             land = st.text_input("Land")
 
-
     anmerkung = st.text_input("Anmerkungen")
     status_options = ["in Bearbeitung", "abgeschlossen", "in Planung"]
     status = st.selectbox("Status", status_options)
@@ -39,14 +54,35 @@ with st.form("Baustelle hinzufügen", clear_on_submit=True):
                 st.error("Endzeitpunkt kann nicht vor dem Start sein!")
             else:
                 try:
-                    s = db.session
-                    q = "(NULL,'"+name+"','"+str(start)+"','"+str(ende)+"','"+status+"','"+anmerkung+"')"
-                    s.execute(text(
-                         "INSERT INTO baustellen(id, name, start, ende, status, beschreibung) VALUES"+q))
-                    s.commit()
-                    s.close()
+                    session = db.session
+
+                    query = text("INSERT INTO adressen(id, strasse, hausnummer, plz, ort, land) VALUES (NULL, "
+                                 ":strasse, :hausnummer, :plz, :ort, :land)")
+                    session.execute(query,
+                                    {"strasse": strasse, "hausnummer": hausnummer, "plz": plz, "ort": ort,
+                                     "land": land})
+                    session.commit()
+
+                    adresse_id = db.query("SELECT MAX(id) AS id FROM adressen", ttl=0)["id"][0]
+                    query = text("INSERT INTO baustellen(id, name, start, ende, status, beschreibung, adresse_id) "
+                                 "VALUES (NULL, :name, :start, :ende, :status, :beschreibung, :adresse_id)")
+                    session.execute(query, {"name": name, "start": str(start), "ende": str(ende), "status": status,
+                                            "beschreibung": anmerkung, "adresse_id": adresse_id})
+                    session.commit()
+
+                    anzahl = dokumente.__len__()
+                    if anzahl > 0:
+                        Text = "Dokumente werden hochgeladen"
+                        if anzahl == 1:
+                            Text = "Dokument wird hochgeladen"
+                        baustellen_id = db.query("SELECT MAX(id) AS id FROM baustellen", ttl=0)["id"][0]
+                        with st.spinner(Text):
+                            dokumenteHochladen(session, dokumente, baustellen_id)
+                    session.commit()
+
+                    session.close()
                     st.success("Baustelle hinzugefügt")
                 except Exception as e:
-                    st.error(e)
+                    st.error(traceback.format_exc())
         else:
             st.error("Name darf nicht leer sein!")
