@@ -1,11 +1,10 @@
 import pandas
 import streamlit as st
 import traceback
-from Dashboard import showSidebar
+from Dashboard import db, show_sidebar
+import urllib.parse
 
-showSidebar()
-
-db = st.connection('mysql', type='sql')
+show_sidebar()
 
 st.title("Fahrzeugübersicht")
 data = db.query("""
@@ -21,7 +20,7 @@ a.insert(0, "Anzeigen", "")
 
 def create_link(name):
     # return f"http://localhost:8501/Fahrzeug_Anzeigen/?name={name.replace(' ', '%20')}"
-    return f"Fahrzeug_Anzeigen?name={name.replace(' ', '%20')}"
+    return f"Fahrzeug_Anzeigen?name={urllib.parse.quote(name)}"
 
 
 def filter_baujahr(a):
@@ -95,7 +94,7 @@ a["Anzeigen"] = a["Name"].apply(create_link)
 
 st.dataframe(a, width=1000, height=400,
              column_config={"Anzeigen": st.column_config.LinkColumn(
-                 display_text='Anzeigen',
+                 display_text="Anzeigen"
              ),
                  "Baujahr": st.column_config.TextColumn()
              })

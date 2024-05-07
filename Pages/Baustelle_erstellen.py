@@ -1,12 +1,11 @@
 import traceback
-
 import streamlit as st
 from sqlalchemy import text
-from Dashboard import showSidebar
+from Dashboard import db, show_sidebar
 
-db = st.connection('mysql', type='sql')
+#db = st.connection('mysql', type='sql')
 
-showSidebar()
+show_sidebar()
 
 
 def dokumenteHochladen(session, dokumente, baustellen_id):

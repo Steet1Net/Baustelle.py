@@ -4,11 +4,15 @@ import pandas
 import streamlit as st
 from sqlalchemy import text
 
-from Dashboard import showSidebar
+from Dashboard import db, show_sidebar
 
-showSidebar()
+show_sidebar()
 
-db = st.connection('mysql', type='sql')
+#db = st.connection('mysql', type='sql')
+
+
+def create_link(name):
+    return f"Baustelle_Anzeigen?name={name.replace(' ', '%20').replace('&', '%26')}"
 
 
 def get_available_vehicles(db, von, bis):
@@ -27,7 +31,7 @@ def get_available_vehicles(db, von, bis):
 
 
 def assign_vehicles_to_baustelle(db, baustelle_id, vehicle_ids, von, bis):
-    query = text("INSERT INTO fahrzeuge_baustellen (baustellen_id, start, ende, fahrzeug_id) VALUES (:baustelle_id, "
+    query = text("INSERT INTO fahrzeuge_baustellen (baustelle_id, start, ende, fahrzeug_id) VALUES (:baustelle_id, "
                  ":start, :ende, :fahrzeug_id)")
 
     session = db.session
@@ -41,6 +45,9 @@ st.title("Baustellenübersicht")
 data = db.query("SELECT id, name, start, ende, status, Beschreibung FROM baustellen", ttl=0)
 a = pandas.DataFrame(data=data)
 a.columns = ["ID", "Name", "Start", "Ende", "Status", "Anmerkungen"]
+a.insert(1, "Anzeigen", "")
+
+a["Anzeigen"] = a["Name"].apply(create_link)
 
 status = st.popover("Status")
 inBearbeitung = status.checkbox("In Bearbeitung", value=True)
@@ -56,6 +63,9 @@ if inPlanung:
 d = st.dataframe(aa,
                  column_config={
                      "Start": st.column_config.DateColumn(),
+                     "Anzeigen": st.column_config.LinkColumn(
+                         display_text="Anzeigen"
+                     )
                  }, height=400, width=950)
 st.divider()
 selMode = st.selectbox("Modus", ["Anzeigen", "Bearbeiten"])

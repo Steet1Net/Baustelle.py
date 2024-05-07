@@ -1,12 +1,12 @@
 import streamlit as st
 
 
-def showSidebar():
-    st.sidebar.page_link("Dashboard.py", label="Dashboard", icon="📈")
-    st.sidebar.page_link("Pages/Baustellen.py", label="Baustellen", icon="🏗")
-    st.sidebar.page_link("Pages/Fahrzeuge.py", label="Fahrzeuge", icon="🚚")
-    st.sidebar.page_link("Pages/Fahrzeuge_erstellen.py", label="Fahrzeug erstellen", icon="🆕")
-    st.sidebar.page_link("Pages/Baustelle_erstellen.py", label="Baustelle Erstellen", icon="🆕")
+def show_sidebar():
+    st.sidebar.page_link("/Dashboard.py", label="Dashboard", icon="📈")
+    st.sidebar.page_link("pages/Baustellen.py", label="Baustellen", icon="🏗")
+    st.sidebar.page_link("pages/Fahrzeuge.py", label="Fahrzeuge", icon="🚚")
+    st.sidebar.page_link("pages/Fahrzeuge_erstellen.py", label="Fahrzeug erstellen", icon="🆕")
+    st.sidebar.page_link("pages/Baustelle_erstellen.py", label="Baustelle Erstellen", icon="🆕")
 
 
 st.set_page_config(
@@ -15,7 +15,7 @@ st.set_page_config(
         layout="wide"
     )
 db = st.connection('mysql', type='sql')
-showSidebar()
+show_sidebar()
 
 
 st.title("Baustellen und Fahrzeugverwaltungs Tool")

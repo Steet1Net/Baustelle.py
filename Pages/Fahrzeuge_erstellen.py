@@ -2,12 +2,13 @@ from datetime import datetime
 import traceback
 import streamlit as st
 from sqlalchemy import text
-from Dashboard import showSidebar
+from Dashboard import db, show_sidebar
+from Modell import neues_modell
 
-showSidebar()
+show_sidebar()
 
 
-def dokumenteHochladen(session, dokumente, fahrzeug_id):
+def dokumente_hochladen(session, dokumente, fahrzeug_id):
     try:
         for doc in dokumente:
             data = doc.read()
@@ -20,7 +21,6 @@ def dokumenteHochladen(session, dokumente, fahrzeug_id):
         st.error(traceback.format_exc())
 
 
-db = st.connection('mysql', type='sql')
 typen = db.query("SELECT fahrzeug_typ, id FROM fahrzeugtypen")
 modelle = db.query("SELECT fahrzeug_modell, beschreibung, fahrzeugtypen.Fahrzeug_typ FROM fahrzeugmodelle JOIN "
                    "fahrzeugtypen ON fahrzeugmodelle.typ_id = fahrzeugtypen.id", ttl=0)
@@ -34,14 +34,19 @@ with col2:
     if image is not None:
         c.image(image)
 with col1:
+    col5, col6 = st.columns([3, 1])
     with col3:
         typ = st.selectbox("Typ", typen, index=None)
     with col4:
-        if typ is None:
-            fahrzeugmodell = st.selectbox("Modell", [])
-        else:
-            fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"),
-                                          index=None)
+        with col5:
+            if typ is None:
+                fahrzeugmodell = st.selectbox("Modell", [])
+            else:
+                fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"),
+                                              index=None)
+        with col6:
+            with st.popover("NEU"):
+                neues_modell()
     try:
         st.caption(str(
             db.query(
@@ -85,7 +90,7 @@ with col1:
                             Text = "Dokument wird hochgeladen"
                         fahrzeug_id = db.query("SELECT MAX(id) AS id FROM fahrzeuge", ttl=0)["id"][0]
                         with st.spinner(Text):
-                            dokumenteHochladen(s, dokumente, fahrzeug_id)
+                            dokumente_hochladen(s, dokumente, fahrzeug_id)
                     s.commit()
                     s.close()
                     st.success("Fahrzeug hinzugefügt")
