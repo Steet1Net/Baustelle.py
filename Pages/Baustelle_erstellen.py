@@ -3,8 +3,10 @@ import streamlit as st
 from sqlalchemy import text
 from Dashboard import db, show_sidebar
 
-#db = st.connection('mysql', type='sql')
-
+st.set_page_config(
+        page_icon="🚧",
+        layout="wide"
+    )
 show_sidebar()
 
 
@@ -46,7 +48,7 @@ with st.form("Baustelle hinzufügen", clear_on_submit=True):
     anmerkung = st.text_input("Anmerkungen")
     status_options = ["in Bearbeitung", "abgeschlossen", "in Planung"]
     status = st.selectbox("Status", status_options)
-    dokumente = st.file_uploader("Dateien Hinzufügen", accept_multiple_files=True)
+    dokumente = st.file_uploader("Dateien Hinzufügen", accept_multiple_files=True, help="z.B. Pläne, Bilder, CAD-Dateien...")
     if st.form_submit_button("Baustelle hinzufügen"):
         if name != "":
             if start > ende:

@@ -3,7 +3,13 @@ import streamlit as st
 from sqlalchemy import text
 from Dashboard import db, show_sidebar
 
+st.set_page_config(
+    page_icon="🚧",
+    layout="wide"
+)
 show_sidebar()
+if st.query_params == {}:
+    st.query_params["typ"] = None
 
 
 def neues_modell():
@@ -12,25 +18,31 @@ def neues_modell():
 
     st.title("Neues Modell hinzufügen")
     with st.form("Neues Modell", clear_on_submit=True):
-        typ = st.selectbox("Fahrzeugtyp", typen, index=None)
+        if st.query_params["typ"] is not None:
+            filtered_typen = typen[typen["fahrzeug_typ"] == str(st.query_params["typ"])]
+            if not filtered_typen.empty:
+                typ = st.selectbox("Fahrzeugtyp", typen["fahrzeug_typ"], index=int(filtered_typen.index[0]))
+            else:
+                typ = st.selectbox("Fahrzeugtyp", typen["fahrzeug_typ"], index=None)
+        else:
+            typ = st.selectbox("Fahrzeugtyp", typen["fahrzeug_typ"], index=None)
 
         col1, col2 = st.columns([1, 2])
         with col1:
-            marke = st.selectbox("Marke", marken["marke"], index=None)
+            marke = st.text_input("Marke")
         with col2:
             name = st.text_input("Name")
         gewicht = st.number_input("Gewicht in Kg", value=0)
         elektrisch = st.checkbox("Elektrisch")
         beschreibung = st.text_area("Beschreibung")
         if st.form_submit_button("Modell hinzufügen"):
-            if name != "":
+            if name != "" and marke != "":
                 try:
                     if marke != "":
-                        if marke + " " not in name:
-                            name = marke + " " + name
+                        name = marke + " " + name
                     session = db.session
                     typ_id = \
-                    db.query("SELECT id FROM fahrzeugtypen WHERE fahrzeug_typ ='" + str(typ) + "'", ttl=0)["id"][0]
+                        db.query("SELECT id FROM fahrzeugtypen WHERE fahrzeug_typ ='" + str(typ) + "'", ttl=0)["id"][0]
                     query = text(
                         "INSERT INTO fahrzeugmodelle(typ_id, fahrzeug_modell, gewicht, beschreibung, elektrisch) "
                         "VALUES (:typ_id, :name, :gewicht, :beschreibung, :elektrisch)")

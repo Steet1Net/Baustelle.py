@@ -4,6 +4,11 @@ import traceback
 from Dashboard import db, show_sidebar
 import urllib.parse
 
+st.set_page_config(
+        page_icon="🚧",
+        layout="wide"
+    )
+
 show_sidebar()
 
 st.title("Fahrzeugübersicht")

@@ -1,22 +1,21 @@
-import time
-import st_pages as stp
 import pandas
 import streamlit as st
 from sqlalchemy import text
 
 from Dashboard import db, show_sidebar
 
+st.set_page_config(
+        page_icon="🚧",
+        layout="wide"
+    )
 show_sidebar()
-
-#db = st.connection('mysql', type='sql')
 
 
 def create_link(name):
     return f"Baustelle_Anzeigen?name={name.replace(' ', '%20').replace('&', '%26')}"
 
 
-def get_available_vehicles(db, von, bis):
-    # SQL query to get available vehicles
+def bekomme_verfügbare_fahrzeuge(db, von, bis):
     query = f"""
     SELECT id, name
     FROM fahrzeuge
@@ -30,7 +29,7 @@ def get_available_vehicles(db, von, bis):
     return pandas.DataFrame(data=data)
 
 
-def assign_vehicles_to_baustelle(db, baustelle_id, vehicle_ids, von, bis):
+def fahrzeuge_zuweisen(db, baustelle_id, vehicle_ids, von, bis):
     query = text("INSERT INTO fahrzeuge_baustellen (baustelle_id, start, ende, fahrzeug_id) VALUES (:baustelle_id, "
                  ":start, :ende, :fahrzeug_id)")
 
@@ -84,13 +83,13 @@ if selMode == "Bearbeiten":
 
         if von is not None and bis is not None:
             st.divider()
-            fahrzeuge = get_available_vehicles(db, von, bis)
+            fahrzeuge = bekomme_verfügbare_fahrzeuge(db, von, bis)
             selected_vehicles = st.multiselect("Fahrzeuge", fahrzeuge["name"])
             button = st.button("Zuweisen")
             if button:
                 try:
                     selected_vehicle_ids = fahrzeuge[fahrzeuge['name'].isin(selected_vehicles)]['id'].tolist()
-                    assign_vehicles_to_baustelle(db, baustellen_id, selected_vehicle_ids, von, bis)
+                    fahrzeuge_zuweisen(db, baustellen_id, selected_vehicle_ids, von, bis)
                     st.success("Fahrzeuge zugewiesen")
                 except Exception as e:
                     st.error(e)

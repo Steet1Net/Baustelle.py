@@ -3,8 +3,11 @@ import traceback
 import streamlit as st
 from sqlalchemy import text
 from Dashboard import db, show_sidebar
-from Modell import neues_modell
 
+st.set_page_config(
+        page_icon="🚧",
+        layout="wide"
+    )
 show_sidebar()
 
 
@@ -30,14 +33,14 @@ col3, col4 = st.columns(2)
 col1, col2 = st.columns([2, 1])
 with col2:
     c = st.container(border=True)
-    image = c.file_uploader("Bild Hinzufügen", accept_multiple_files=False, type=["png", "jpg", "jpeg"])
+    image = c.file_uploader("Bild Hinzufügen", accept_multiple_files=False, type=["png", "jpg", "jpeg", "webp", "jfif"])
     if image is not None:
         c.image(image)
 with col1:
-    col5, col6 = st.columns([3, 1])
     with col3:
         typ = st.selectbox("Typ", typen, index=None)
     with col4:
+        col5, col6 = st.columns([3, 1])
         with col5:
             if typ is None:
                 fahrzeugmodell = st.selectbox("Modell", [])
@@ -45,8 +48,8 @@ with col1:
                 fahrzeugmodell = st.selectbox("Modell", modelle.query('Fahrzeug_typ == ' + "'" + str(typ) + "'"),
                                               index=None)
         with col6:
-            with st.popover("NEU"):
-                neues_modell()
+            st.caption('<div style="height: 28px;">Neues Modell</div>', unsafe_allow_html=True)
+            st.link_button("NEU", "Modell?typ=" + str(typ))
     try:
         st.caption(str(
             db.query(
@@ -56,11 +59,11 @@ with col1:
         pass
 
     with st.form("Fahrzeug hinzufügen", clear_on_submit=True):
-        name = st.text_input("Name")
+        name = st.text_input("Name", help="z.B. Auto vom Chef, Kennzeichen...")
         baujahr = st.number_input("Baujahr", value=2000)
         kaufdatum = st.date_input("Kaufdatum")
         beschreibung = st.text_input("Anmerkung:")
-        dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True)
+        dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True, help="z.B. Kaufvertrag, Rechnung, Fahrzeugschein")
         if st.form_submit_button("Fahrzeug hinzufügen"):
             if name != "" and len(str(baujahr)) == 4 and typ is not None and fahrzeugmodell is not None:
                 try:
