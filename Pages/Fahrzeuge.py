@@ -97,7 +97,7 @@ with st.popover("Baujahr"):
 
 a["Anzeigen"] = a["Name"].apply(create_link)
 
-st.dataframe(a, width=1000, height=400,
+st.dataframe(a, width=5000, height=400,
              column_config={"Anzeigen": st.column_config.LinkColumn(
                  display_text="Anzeigen"
              ),

@@ -17,7 +17,7 @@ def show_sidebar():
 show_sidebar()
 db = st.connection('mysql', type='sql')
 
-st.title("Baustellen und Fahrzeugverwaltungs Tool")
+st.title("Baustellen und Fahrzeugverwaltung")
 st.write("Willkommen im Baustellen und Fahrzeugverwaltungs Tool. Hier können Sie Baustellen und Fahrzeuge verwalten.")
 st.divider()
 
@@ -34,4 +34,7 @@ with c:
     st.page_link(page="pages/Modell.py", label="Modell hinzufügen")
     # st.link_button("Modell hinzufügen", "https://baustelle.steet.net/Modell?typ=None")
     # st.write("[Modell hinzufügen](Modell?typ=None)")
-
+with st.spinner("Lade Karte..."):
+    query = "SELECT latitude, longitude FROM adressen WHERE latitude != 0 AND longitude != 0"
+    a = db.query(query, ttl=0)
+    st.map(a, size=None)

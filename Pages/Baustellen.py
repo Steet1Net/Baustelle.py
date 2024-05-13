@@ -59,13 +59,14 @@ if abgeschlossen:
     aa = pandas.concat([aa, a.query("Status == 'abgeschlossen'")])
 if inPlanung:
     aa = pandas.concat([aa, a.query("Status == 'in Planung'")])
+aa.drop("ID", axis=1, inplace=True)
 d = st.dataframe(aa,
                  column_config={
                      "Start": st.column_config.DateColumn(),
                      "Anzeigen": st.column_config.LinkColumn(
                          display_text="Anzeigen"
                      )
-                 }, height=400, width=950)
+                 }, height=400, width=5000)
 st.divider()
 selMode = st.selectbox("Modus", ["Anzeigen", "Bearbeiten"])
 if selMode == "Bearbeiten":
