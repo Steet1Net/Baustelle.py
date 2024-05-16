@@ -6,7 +6,8 @@ import urllib.parse
 
 st.set_page_config(
         page_icon="🚧",
-        layout="wide"
+        layout="wide",
+        page_title="Fahrzeugübersicht"
     )
 
 show_sidebar()

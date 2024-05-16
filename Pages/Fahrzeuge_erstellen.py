@@ -6,7 +6,8 @@ from Dashboard import db, show_sidebar
 
 st.set_page_config(
         page_icon="🚧",
-        layout="wide"
+        layout="wide",
+        page_title="Neues Fahrzeug"
     )
 show_sidebar()
 

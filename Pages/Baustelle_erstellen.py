@@ -3,10 +3,12 @@ import streamlit as st
 from geopy import Nominatim
 from sqlalchemy import text
 from Dashboard import db, show_sidebar
+from countries import get_countries
 
 st.set_page_config(
     page_icon="🚧",
-    layout="wide"
+    layout="wide",
+    page_title="Neue Baustelle"
 )
 show_sidebar()
 
@@ -61,7 +63,7 @@ with col1:
             with col4:
                 ort = st.text_input("Ort")
             with col5:
-                land = st.text_input("Land")
+                land = st.selectbox("Land", get_countries(), index=None, placeholder="Land auswählen")
 
         anmerkung = st.text_input("Anmerkungen")
         status_options = ["in Bearbeitung", "abgeschlossen", "in Planung"]

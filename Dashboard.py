@@ -23,9 +23,12 @@ st.divider()
 
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Fahrzeuge", db.query("SELECT COUNT(id) AS id FROM fahrzeuge")["id"][0], "2")
-col2.metric("Baustellen: Geplant", db.query("SELECT COUNT(id) AS id FROM baustellen WHERE status = 'in Planung'")["id"][0], "1")
-col3.metric("Baustellen: Aktiv", db.query("SELECT COUNT(id) AS id FROM baustellen WHERE status = 'in Bearbeitung'")["id"][0], "-3")
-col4.metric("Baustellen: Abgeschlossen", db.query("SELECT COUNT(id) AS id FROM baustellen WHERE status = 'abgeschlossen'")["id"][0], "1")
+col2.metric("Baustellen: Geplant", db.query("SELECT COUNT(id) AS id FROM baustellen WHERE status = 'in Planung'")
+            ["id"][0], "1")
+col3.metric("Baustellen: Aktiv", db.query("SELECT COUNT(id) AS id FROM baustellen WHERE status = 'in Bearbeitung'")
+            ["id"][0], "-3")
+col4.metric("Baustellen: Abgeschlossen", db.query("SELECT COUNT(id) AS id FROM baustellen WHERE status = 'abgeschlossen"
+                                                  "'")["id"][0], "1")
 
 st.divider()
 c = st.container(border=True)

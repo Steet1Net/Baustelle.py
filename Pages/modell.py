@@ -5,7 +5,8 @@ from Dashboard import db, show_sidebar
 
 st.set_page_config(
     page_icon="🚧",
-    layout="wide"
+    layout="wide",
+    page_title="Neues Fahrzeugmodell"
 )
 show_sidebar()
 if st.query_params == {}:
@@ -14,7 +15,6 @@ if st.query_params == {}:
 
 def neues_modell():
     typen = db.query("SELECT fahrzeug_typ, id FROM fahrzeugtypen")
-    marken = db.query("SELECT marke, id FROM marken")
 
     st.title("Neues Modell hinzufügen")
     with st.form("Neues Modell", clear_on_submit=True):
