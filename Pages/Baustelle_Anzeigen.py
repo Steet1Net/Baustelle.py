@@ -93,7 +93,7 @@ with tab2:  # Adresse
     with col2:
         try:
             with st.spinner("Lade Karte..."):
-                geolocator = Nominatim(user_agent="baustelle.steet.net")
+                geolocator = Nominatim(user_agent="**insert domain**")
                 location = geolocator.geocode(f"{strasse} {hausnummer}, {plz} {ort}, {land}")
                 a = [{'lat': location.latitude, 'lon': location.longitude}]
                 st.map(a, zoom=14, use_container_width=False)
