@@ -1,7 +1,7 @@
 import streamlit as st
 from sqlalchemy import text
 from countries import get_countries
-from Dashboard import db
+from Dashboard import db, status
 from streamlit_timeline import st_timeline
 from geopy import Nominatim
 
@@ -41,7 +41,7 @@ with tab1:  # Übersicht
             name = st.text_input("Name", value=name)
             start = st.date_input("Startdatum", value=baustelle["start"][0])
         with col11:
-            status = st.selectbox("Status", ["in Planung", "in Bearbeitung", "abgeschlossen"], index=status_index)
+            status = st.selectbox("Status", status, index=status_index)
             ende = st.date_input("Enddatum", value=baustelle["ende"][0])
         beschreibung = st.text_area("Beschreibung / Anmerkungen", baustelle["beschreibung"][0])
         if st.button("Aktualisieren", key="übersicht_aktualisieren"):
@@ -91,14 +91,17 @@ with tab2:  # Adresse
                 session.commit()
                 st.success("Adresse aktualisiert")
     with col2:
-        with st.spinner("Lade Karte..."):
-            geolocator = Nominatim(user_agent="baustelle.steet.net")
-            location = geolocator.geocode(f"{strasse} {hausnummer}, {plz} {ort}, {land}")
-            a = [{'lat': location.latitude, 'lon': location.longitude}]
-            st.map(a, zoom=14, use_container_width=False)
-            st.link_button("Auf Google Maps anzeigen", f"https://www.google.com/maps/search/?api=1&query="
-                                                       f"{location.latitude},{location.longitude}",
-                           use_container_width=True)
+        try:
+            with st.spinner("Lade Karte..."):
+                geolocator = Nominatim(user_agent="baustelle.steet.net")
+                location = geolocator.geocode(f"{strasse} {hausnummer}, {plz} {ort}, {land}")
+                a = [{'lat': location.latitude, 'lon': location.longitude}]
+                st.map(a, zoom=14, use_container_width=False)
+                st.link_button("Auf Google Maps anzeigen", f"https://www.google.com/maps/search/?api=1&query="
+                                                           f"{location.latitude},{location.longitude}",
+                               use_container_width=True)
+        except:
+            st.error("Karte konnte nicht geladen werden")
 with tab3:  # Zuweisungen
     if not zuweisungen.empty:
         for index, row in zuweisungen.iterrows():
@@ -115,6 +118,49 @@ with tab3:  # Zuweisungen
         st_timeline(timeline_data, options={}, height=h)
     else:
         st.caption("_Keine Fahrzeuge zugewiesen_")
+
+    st.divider()
+    st.header("Fahrzeuge zuweisen")
+
+    col22, col33 = st.columns(2)
+    with col22:
+        start_d = st.date_input("Startdatum", value=None, max_value=ende, min_value=start)
+    with col33:
+        ende_d = st.date_input("Enddatum", value=None, max_value=ende, min_value=start)
+    if start_d is not None and ende_d is not None:
+        if not start_d <= ende_d:
+            st.error("Wähle einen gültigen Zeitraum aus!")
+        else:
+            if start_d >= start and ende_d <= ende:
+                q = f"""
+                    SELECT id, name
+                    FROM fahrzeuge
+                    WHERE id NOT IN (
+                        SELECT fahrzeug_id
+                        FROM fahrzeuge_baustellen
+                        WHERE (start <= '{ende_d}' AND ende >= '{start_d}')
+                    )
+                    """
+                fahrzeuge = db.query(q, ttl=0)
+                if not fahrzeuge.empty:
+                    sel_fahrzeuge = st.multiselect("Fahrzeuge", fahrzeuge["name"])
+                    if st.button("Zuweisen"):
+                        query = text(
+                            "INSERT INTO fahrzeuge_baustellen (baustelle_id, start, ende, fahrzeug_id) VALUES (:baustelle_id, "
+                            ":start, :ende, :fahrzeug_id)")
+                        fahrzeuge_ids = fahrzeuge[fahrzeuge['name'].isin(sel_fahrzeuge)]['id'].tolist()
+                        session = db.session
+                        for fahrzeuge_id in fahrzeuge_ids:
+                            session.execute(query, {"baustelle_id": baustelle_id, "start": start_d, "ende": ende_d,
+                                                    "fahrzeug_id": fahrzeuge_id})
+                            session.commit()
+                        session.close()
+                        st.rerun()
+                else:
+                    st.error("Keine Fahrzeuge verfügbar")
+            else:
+                st.error("Zeitraum liegt nicht innerhalb der Baustelle!")
+
 with tab4:  # Dokumente
     col1, col2 = st.columns([2, 1])
     with col1:

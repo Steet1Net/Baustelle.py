@@ -50,7 +50,7 @@ with col1:
                                               index=None)
         with col6:
             st.caption('<div style="height: 28px;">Neues Modell</div>', unsafe_allow_html=True)
-            st.link_button("NEU", "Modell?typ=" + str(typ))
+            st.link_button("NEU", "Modell?typ=" + str(typ) + "&s=true")
     try:
         st.caption(str(
             db.query(
@@ -63,7 +63,7 @@ with col1:
         name = st.text_input("Name", help="z.B. Auto vom Chef, Kennzeichen...")
         baujahr = st.number_input("Baujahr", value=2000)
         kaufdatum = st.date_input("Kaufdatum")
-        beschreibung = st.text_input("Anmerkung:")
+        beschreibung = st.text_area("Anmerkung:")
         dokumente = st.file_uploader("Dokumente Hinzufügen", accept_multiple_files=True, help="z.B. Kaufvertrag, Rechnung, Fahrzeugschein")
         if st.form_submit_button("Fahrzeug hinzufügen"):
             if name != "" and len(str(baujahr)) == 4 and typ is not None and fahrzeugmodell is not None:

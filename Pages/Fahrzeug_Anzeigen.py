@@ -11,12 +11,28 @@ st.set_page_config(
     layout="wide",
     page_title=st.query_params["name"]
 )
+
+
+@st.experimental_dialog("Fahrzeug Löschen")
+def löschen():
+    st.write(f"Sind Sie sich sicher, dass sie {fahrzeug["name"][0]} löschen möchten?")
+    pw = st.text_input("Passwort", type="password")
+    if st.button("Löschen"):
+        if pw == st.secrets["del_pw"]:
+            query = text("DELETE FROM fahrzeuge WHERE id = :id")
+            session.execute(query, {"id": fahrzeug_id})
+            session.commit()
+            st.success("Fahrzeug erfolgreich gelöscht")
+            st.switch_page("pages/Fahrzeuge.py")
+        else:
+            st.error("Falsches Passwort")
+
+
 session = db.session
 fahrzeug = db.query(f"SELECT * FROM fahrzeuge WHERE name = '{st.query_params['name']}'",
                     ttl=0)
 fahrzeug_id = fahrzeug["id"][0]
 st.page_link("pages/Fahrzeuge.py", label="Fahrzeuge", icon="⬅️")
-
 st.title(fahrzeug["name"][0])
 modell = db.query(f"SELECT fahrzeug_modell, elektrisch FROM fahrzeugmodelle WHERE id = {fahrzeug['modell_id'][0]}", ttl=0)
 zuweisungen = db.query(f"SELECT baustellen.name, fahrzeuge_baustellen.fahrzeug_id, fahrzeuge_baustellen.start, "
@@ -47,6 +63,8 @@ with tab1:  # Übersicht
                 st.success("Fahrzeug erfolgreich aktualisiert")
             except Exception as e:
                 st.error(e)
+        if st.button("Löschen", type="primary"):
+            löschen()
     with col2:
         if fahrzeug["bild"][0] is not None:
             st.image(fahrzeug["bild"][0])
@@ -75,6 +93,22 @@ with tab2:  # Zuweisungen
         st_timeline(timeline_data, groups=groups, options={}, height="250px")
     else:
         st.caption("*Keine Zuweisungen vorhanden*")
+
+    st.divider()
+
+    with st.form("Zuweisung Hinzufügen", clear_on_submit=True, border=False):
+        col1, col2 = st.columns(2)
+        with col1:
+            von = st.date_input("Von", value=None)
+        with col2:
+            bis = st.date_input("Bis", value=None)
+        if von is not None and bis is not None:
+            baustellen = db.query(f"SELECT id, name FROM fahrzeuge WHERE id NOT IN (SELECT fahrzeug_id FROM fahrzeuge_baustellen WHERE (start <= '{bis}' AND ende >= '{von}'))")
+            baustelle = st.selectbox("Baustelle", baustellen["Name"], index=None)
+        if st.form_submit_button("Zuweisen"):
+            query = text("INSERT INTO fahrzeuge_baustellen (fahrzeug_id, baustelle_id, start, ende) VALUES "
+                         "(:fahrzeug_id, :baustelle_id, :start, :ende)")
+
 
 with tab3:  # Dokumente
     col1, col2 = st.columns([2, 1])

@@ -5,16 +5,17 @@ from Dashboard import db, show_sidebar
 
 st.set_page_config(
     page_icon="🚧",
-    layout="wide"
+    layout="wide",
+    page_title="Neues Fahrzeugmodell"
 )
 show_sidebar()
 if st.query_params == {}:
     st.query_params["typ"] = None
+    st.query_params["s"] = None
 
 
 def neues_modell():
     typen = db.query("SELECT fahrzeug_typ, id FROM fahrzeugtypen")
-    marken = db.query("SELECT marke, id FROM marken")
 
     st.title("Neues Modell hinzufügen")
     with st.form("Neues Modell", clear_on_submit=True):
@@ -52,7 +53,9 @@ def neues_modell():
                     session.commit()
                     session.close()
                     st.success("Modell hinzugefügt")
-                except Exception as e:
+                    if st.query_params["s"] is not None:
+                        st.switch_page("pages/Fahrzeuge_erstellen.py")
+                except Exception:
                     st.error(traceback.format_exc())
             else:
                 st.error("Fehlerhafte eingabe!")

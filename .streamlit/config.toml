@@ -1,2 +1,10 @@
 [client]
 showSidebarNavigation = false
+
+[server]
+sslCertFile='path to cert file'
+sslKeyFile='path to private key file'
+
+[theme]
+primaryColor="#2f64ba"
+base="dark"

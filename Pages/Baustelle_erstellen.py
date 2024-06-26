@@ -2,7 +2,7 @@ import traceback
 import streamlit as st
 from geopy import Nominatim
 from sqlalchemy import text
-from Dashboard import db, show_sidebar
+from Dashboard import db, show_sidebar, status
 from countries import get_countries
 
 st.set_page_config(
@@ -65,8 +65,8 @@ with col1:
             with col5:
                 land = st.selectbox("Land", get_countries(), index=None, placeholder="Land auswählen")
 
-        anmerkung = st.text_input("Anmerkungen")
-        status_options = ["in Bearbeitung", "abgeschlossen", "in Planung"]
+        anmerkung = st.text_area("Anmerkung:")
+        status_options = status
         status = st.selectbox("Status", status_options)
         dokumente = st.file_uploader("Dateien Hinzufügen", accept_multiple_files=True,
                                      help="z.B. Pläne, Bilder, CAD-Dateien...")
@@ -82,8 +82,8 @@ with col1:
                             session = db.session
 
                             query = text("INSERT INTO adressen(id, strasse, hausnummer, plz, ort, land, latitude, "
-                                         "longitude) VALUES (NULL, :strasse, :hausnummer, :plz, :ort, :land, :latitude, "
-                                         ":longitude)")
+                                         "longitude) VALUES (NULL, :strasse, :hausnummer, :plz, :ort, :land, :latitude,"
+                                         " :longitude)")
                             session.execute(query,
                                             {"strasse": strasse, "hausnummer": hausnummer, "plz": plz, "ort": ort,
                                              "land": land, "latitude": lat, "longitude": long})
@@ -93,7 +93,7 @@ with col1:
 
                             query = text("INSERT INTO baustellen(id, name, start, ende, status, beschreibung, "
                                          "adresse_id, bild) VALUES (NULL, :name, :start, :ende, :status, :beschreibung,"
-                                         ":adresse_id, bild)")
+                                         ":adresse_id, :bild)")
                             session.execute(query,
                                             {"name": name, "start": str(start), "ende": str(ende), "status": status,
                                              "beschreibung": anmerkung, "adresse_id": adresse_id, "bild": image})
@@ -108,7 +108,6 @@ with col1:
                                 with st.spinner(Text):
                                     dokumenteHochladen(session, dokumente, baustellen_id)
                             session.commit()
-
 
                             st.success("Baustelle hinzugefügt")
                         else:

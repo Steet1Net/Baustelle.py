@@ -1,4 +1,11 @@
 def get_countries():
+    """
+        This function returns a list of countries. The countries are represented as strings and are listed in
+        alphabetical order.
+
+        Returns:
+        list: A list of strings where each string is a country name.
+    """
     return [
         "Afghanistan", "Ägypten", "Albanien", "Algerien", "Andorra", "Angola", "Antigua und Barbuda",
         "Äquatorialguinea", "Argentinien", "Armenien", "Aserbaidschan", "Äthiopien", "Australien", "Bahamas", "Bahrain",
