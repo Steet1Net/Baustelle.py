@@ -27,7 +27,7 @@ def dokumenteHochladen(session, dokumente, baustellen_id):
 
 
 def get_lat_long(adresse):
-    geolocator = Nominatim(user_agent="baustelle.steet.net")
+    geolocator = Nominatim(user_agent="**insert domain**")
     location = geolocator.geocode(adresse)
     if location is not None:
         return location.latitude, location.longitude
